@@ -1,16 +1,43 @@
 #include <stdio.h>
-#include <string.h> //nico likes amit
+#include <string.h>
 
-// This is a test
-
-int x = 1;
-int y = 1;
+// Define a structure to hold address book contact information
+struct Contact
+{
+  char firstName[50];      // First name of the contact
+  char lastName[50];       // Last name of the contact
+  char email[100];         // Email address (must contain '@')
+  char phoneNumber[20];    // Phone number (digits only)
+  char postalAddress[150]; // Postal address
+};
 
 void displayMenu();
 void cleanBuffer();
-void removeNewLine();
+void removeNewLine(char *str);
 void displayEntryCreation();
+void getInputString(const char *prompt, char *output, int size);
 int getIntInput(const char *prompt);
+void getValidatedEmail(char *email, int size);
+void getValidatedPhone(char *phone, int size);
+void createNewEntry();
+void printContact(const struct Contact *contact);
+
+#define maxContacts 100
+struct Contact contacts[maxContacts];
+int contactCount = 0;
+
+// Temporary function so that we can see it works
+void printContact(const struct Contact *contact)
+{
+  printf("\n┌──────────────────────────────────┐");
+  printf("\n│           CONTACT CARD          │");
+  printf("\n├──────────────────────────────────┤");
+  printf("\n│ %-15s %-15s │", contact->firstName, contact->lastName);
+  printf("\n│ %-30s │", contact->email);
+  printf("\n│ %-30s │", contact->phoneNumber);
+  printf("\n│ %-30s │", contact->postalAddress);
+  printf("\n└──────────────────────────────────┘\n");
+}
 
 // Function to display main menu
 void displayMenu()
@@ -76,15 +103,75 @@ void removeNewLine(char *str)
   }
 }
 
-// Def ine a structure to hold address book contact information
-struct Contact
+// Helper for string input
+void getInputString(const char *prompt, char *output, int size)
 {
-  char firstName[50];      // First name of the contact
-  char lastName[50];       // Last name of the contact
-  char email[100];         // Email address (must contain '@')
-  char phoneNumber[20];    // Phone number (digits only)
-  char postalAddress[150]; // Postal address
-};
+  printf("%s", prompt);
+  fgets(output, size, stdin);
+  removeNewLine(output);
+}
+
+// Function to get the user to input a valid email
+void getValidatedEmail(char *email, int size)
+{
+  while (1)
+  {
+    getInputString("Enter email: ", email, size);
+    // Validate if the @ is inside the string
+    if (strchr(email, '@') != NULL)
+      break;
+    else
+      printf("Invalid email. Must contain '@'. Try again.\n");
+  }
+}
+
+// Function to get the user to input a valid phone number
+void getValidatedPhone(char *phone, int size)
+{
+  int phoneNum;
+
+  while (1)
+  {
+    phoneNum = getIntInput("Enter SPANISH phone number (9 digits only): ");
+
+    // Convert integer to string and store it
+    snprintf(phone, size, "%d", phoneNum);
+
+    // Check number length to make sure its a valid phone number
+    if (strlen(phone) != 9)
+    {
+      printf("Invalid phone number length. Try again.\n");
+    }
+    else
+    {
+      break;
+    }
+  }
+}
+
+void createNewEntry()
+{
+  struct Contact newContact;
+
+  printf("\nCreating a new contact entry:\n");
+
+  getInputString("Enter first name: ", newContact.firstName, sizeof(newContact.firstName));
+  getInputString("Enter last name: ", newContact.lastName, sizeof(newContact.lastName));
+  getValidatedEmail(newContact.email, sizeof(newContact.email));
+  getValidatedPhone(newContact.phoneNumber, sizeof(newContact.phoneNumber));
+  getInputString("Enter postal address: ", newContact.postalAddress, sizeof(newContact.postalAddress));
+
+  printf("\nContact created successfully:\n");
+  printf("Name: %s %s\n", newContact.firstName, newContact.lastName);
+  printf("Email: %s\n", newContact.email);
+  printf("Phone: %s\n", newContact.phoneNumber);
+  printf("Address: %s\n", newContact.postalAddress);
+
+  contacts[contactCount++] = newContact;
+
+  printContact(&newContact);
+  // TODO: Save to file or database
+}
 
 int main()
 {
@@ -118,6 +205,7 @@ int main()
         else if (entryInput == 1)
         {
           printf("\nYou have selected to create a new entry\n");
+          createNewEntry();
         }
 
         else if (entryInput == 2)
