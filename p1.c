@@ -21,12 +21,13 @@ void getValidatedEmail(char *email, int size);
 void getValidatedPhone(char *phone, int size);
 void createNewEntry();
 void printContact(const struct Contact *contact);
+void printAllContacts();
 
 #define maxContacts 100
 struct Contact contacts[maxContacts];
 int contactCount = 0;
 
-// Temporary function so that we can see it works
+// Temporary function so that we can see it works. Only used for the printAllContacts
 void printContact(const struct Contact *contact)
 {
   printf("\n┌──────────────────────────────────┐");
@@ -37,6 +38,24 @@ void printContact(const struct Contact *contact)
   printf("\n│ %-30s │", contact->phoneNumber);
   printf("\n│ %-30s │", contact->postalAddress);
   printf("\n└──────────────────────────────────┘\n");
+}
+
+// Temporary function to print all contacts saved so far
+void printAllContacts()
+{
+  if (contactCount == 0)
+  {
+    printf("\nNo contacts available.\n");
+    return;
+  }
+
+  printf("\n=== ALL CONTACTS (%d) ===\n", contactCount);
+  for (int i = 0; i < contactCount; i++)
+  {
+    printf("\nContact #%d:", i + 1);
+    printContact(&contacts[i]);
+  }
+  printf("=======================\n");
 }
 
 // Function to display main menu
@@ -155,21 +174,24 @@ void createNewEntry()
 
   printf("\nCreating a new contact entry:\n");
 
+  // This gets the user to input each attribute and validates them using the functions
   getInputString("Enter first name: ", newContact.firstName, sizeof(newContact.firstName));
   getInputString("Enter last name: ", newContact.lastName, sizeof(newContact.lastName));
   getValidatedEmail(newContact.email, sizeof(newContact.email));
   getValidatedPhone(newContact.phoneNumber, sizeof(newContact.phoneNumber));
   getInputString("Enter postal address: ", newContact.postalAddress, sizeof(newContact.postalAddress));
 
+  // Prints contact information
   printf("\nContact created successfully:\n");
   printf("Name: %s %s\n", newContact.firstName, newContact.lastName);
   printf("Email: %s\n", newContact.email);
   printf("Phone: %s\n", newContact.phoneNumber);
   printf("Address: %s\n", newContact.postalAddress);
 
+  // Saves the contact information into the contacts array
+  // Also increments the contactsCount (to reach the limit)
   contacts[contactCount++] = newContact;
 
-  printContact(&newContact);
   // TODO: Save to file or database
 }
 
@@ -222,6 +244,8 @@ int main()
 
     else if (mainInput == 2)
     {
+      // Temporary have this here for verification
+      printAllContacts();
     }
 
     else
