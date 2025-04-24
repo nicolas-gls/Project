@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 int x = 1;
 int y = 1;
@@ -67,10 +68,21 @@ void removeNewLine(char *str)
     if (str[i] == '\n')
     {
       str[i] = '\0';
+
       break;
     }
   }
 }
+
+// Def ine a structure to hold address book contact information
+struct Contact
+{
+  char firstName[50];      // First name of the contact
+  char lastName[50];       // Last name of the contact
+  char email[100];         // Email address (must contain '@')
+  char phoneNumber[20];    // Phone number (digits only)
+  char postalAddress[150]; // Postal address
+};
 
 int main()
 {
