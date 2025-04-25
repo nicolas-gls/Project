@@ -25,13 +25,16 @@ void createNewEntry();
 void printContact(const struct Contact *contact);
 void printAllContacts();
 void trimTrailingWhitespace(char *str);
-// void saveContactsToCSV(const char *filename);
+void saveContactsToCSV(const char *filename);
 void loadContactsFromCSV(const char *filename);
 
 #define maxContacts 1000
 // Array for contacts
 struct Contact contacts[maxContacts];
 int contactCount = 0;
+
+// Variable to warn user if there are unsaved changes
+int unsavedChanges = 0;
 
 // Temporary function so that we can see it works. Only used for the printAllContacts
 void printContact(const struct Contact *contact)
@@ -72,6 +75,7 @@ void displayMenu()
   printf("0 - Close program\n");
   printf("1 - Save an entry\n");
   printf("2 - Retrieve an existing entry\n");
+  printf("3 - Save changes\n");
 }
 
 // Function to display the menu during entry creation
@@ -103,7 +107,7 @@ int getIntInput(const char *prompt)
     else
     {
       // If the input was invalid (not an integer), print an error message
-      printf("\nInvalid input. Please enter a number.\n");
+      printf("\nInvalid input. Please enter a number.\n\n");
     }
   }
 }
@@ -147,7 +151,7 @@ void getValidatedEmail(char *email, int size)
     if (strchr(email, '@') != NULL)
       break;
     else
-      printf("Invalid email. Must contain '@'. Try again.\n");
+      printf("\nInvalid email. Must contain '@'. Try again.\n\n");
   }
 }
 
@@ -166,7 +170,7 @@ void getValidatedPhone(char *phone, int size)
     // Check number length to make sure its a valid phone number
     if (strlen(phone) != 9)
     {
-      printf("Invalid phone number length. Try again.\n");
+      printf("\nInvalid phone number length. Try again.\n\n");
     }
     else
     {
@@ -175,11 +179,15 @@ void getValidatedPhone(char *phone, int size)
   }
 }
 
+// Function to create a new contact
 void createNewEntry()
 {
   struct Contact newContact;
 
   printf("\nCreating a new contact entry:\n");
+
+  // Sets up the unsaved changes flag
+  unsavedChanges = 1;
 
   // This gets the user to input each attribute and validates them using the functions
   newContact.contactNumber = contactCount + 1;
@@ -201,7 +209,32 @@ void createNewEntry()
   // Also increments the contactsCount (to reach the limit)
   contacts[contactCount++] = newContact;
 
-  // TODO: Save to file or database
+  // Asks the user if they want to save the contact
+  while (1)
+  {
+    printf("\nDo you want to save this contact to the file? (y/n): ");
+    char choice = getchar();
+    cleanBuffer();
+
+    if (choice == 'y' || choice == 'Y')
+    {
+      saveContactsToCSV("practice.csv");
+      printf("\nContact saved successfully");
+      unsavedChanges = 0;
+      break;
+    }
+
+    else if (choice == 'n' || choice == 'N')
+    {
+      printf("\nContact won't be saved\n");
+      break;
+    }
+
+    else
+    {
+      printf("\nThis is not a valid input, only 'y' or 'n' are accepted\n");
+    }
+  }
 }
 
 // Function to trim extra characters or space from csv entries
@@ -215,7 +248,7 @@ void trimTrailingWhitespace(char *str)
   }
 }
 
-// DISCLAIMER for some reason it works eeven if we use "," inside the input
+// DISCLAIMER for some reason it works even if we use "," inside the input
 // REMMEBER TO DELETE THESE TWO COMMENTS BEFORE HANDING IN
 
 // Function to load contacts from a CSV file into the contacts array
@@ -302,13 +335,10 @@ void loadContactsFromCSV(const char *filename)
   printf("\nLoaded %d contacts from %s\n", contactCount, filename);
 }
 
-// Not done yet
-
-// Save contacts to a CSV file
-
-/*
+// Function to rewrite the csv file with current data in contacts array (save contacts to csv)
 void saveContactsToCSV(const char *filename)
 {
+  // Opens file and returns error if file can't be opened
   FILE *file = fopen(filename, "w");
   if (!file)
   {
@@ -316,8 +346,10 @@ void saveContactsToCSV(const char *filename)
     return;
   }
 
+  // Starts rewriting the file by setting the headers
   fprintf(file, "Contact Number,First Name,Last Name,Email,Phone Number,Postal Address\n");
 
+  // Loop until contactCount is reached rewriting each row
   for (int i = 0; i < contactCount; i++)
   {
     fprintf(file, "%d,%s,%s,%s,%s,%s\n",
@@ -330,12 +362,11 @@ void saveContactsToCSV(const char *filename)
   }
 
   fclose(file);
-  printf("\nContacts saved successfully to %s\n", filename);
 }
-*/
 
 int main()
 {
+  // Open and load csv file data into contacts array
   const char *filename = "practice.csv";
   loadContactsFromCSV(filename);
 
@@ -348,10 +379,54 @@ int main()
     // Get validated entry menu input
     mainInput = getIntInput("\nPlease input a number according to the menu: ");
 
+    // Begins process to close program
     if (mainInput == 0)
     {
-      printf("\nThanks for using our service\n");
-      return 0;
+      // If there are any unsaved changes the user has the option to save them before closing
+      if (unsavedChanges)
+      {
+        printf("\nYou have unsaved changes!\n");
+        printf("0 - Return to main menu\n");
+        printf("1 - Save and exit\n");
+        printf("2 - Exit without saving\n");
+
+        while (1)
+        {
+          int choice = getIntInput("\nPlease input your choice to continue: ");
+          // The user can decide to return to the main menu
+          if (choice == 0)
+          {
+            break;
+          }
+
+          else if (choice == 1)
+          {
+            saveContactsToCSV("practice.csv");
+            printf("\nContacts saved successfully\n");
+            printf("Thanks for using our service\n");
+            return 0;
+          }
+
+          else if (choice == 2)
+          {
+            printf("\nExiting without saving changes\n");
+            printf("Thanks for using our service\n");
+            return 0;
+          }
+
+          else
+          {
+            printf("\n This is not a valid input\n");
+          }
+        }
+        continue;
+      }
+      // If there aren't any unsaved changes the program will close directly
+      else
+      {
+        printf("\nThanks for using our service\n");
+        return 0;
+      }
     }
 
     else if (mainInput == 1)
@@ -389,6 +464,14 @@ int main()
     {
       // Temporary have this here for verification
       printAllContacts();
+    }
+
+    // Allows the user to save all current contacts/changes in the array to the csv file
+    else if (mainInput == 3)
+    {
+      saveContactsToCSV("practice.csv");
+      unsavedChanges = 0;
+      printf("\nContacts saved!\n\n");
     }
 
     else
