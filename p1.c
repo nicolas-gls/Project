@@ -5,7 +5,7 @@
 // Define a structure to hold address book contact information
 struct Contact
 {
-  int contactNumber;
+  int contactNumber;       // Contact number of the contact
   char firstName[50];      // First name of the contact
   char lastName[50];       // Last name of the contact
   char email[100];         // Email address (must contain '@')
@@ -24,10 +24,12 @@ void getValidatedPhone(char *phone, int size);
 void createNewEntry();
 void printContact(const struct Contact *contact);
 void printAllContacts();
+void trimTrailingWhitespace(char *str);
 // void saveContactsToCSV(const char *filename);
 void loadContactsFromCSV(const char *filename);
 
 #define maxContacts 1000
+// Array for contacts
 struct Contact contacts[maxContacts];
 int contactCount = 0;
 
@@ -202,6 +204,20 @@ void createNewEntry()
   // TODO: Save to file or database
 }
 
+// Function to trim extra characters or space from csv entries
+void trimTrailingWhitespace(char *str)
+{
+  int len = strlen(str);
+  while (len > 0 && (str[len - 1] == ' ' || str[len - 1] == '\n' || str[len - 1] == '\r'))
+  {
+    str[len - 1] = '\0';
+    len--;
+  }
+}
+
+// DISCLAIMER for some reason it works eeven if we use "," inside the input
+// REMMEBER TO DELETE THESE TWO COMMENTS BEFORE HANDING IN
+
 // Function to load contacts from a CSV file into the contacts array
 void loadContactsFromCSV(const char *filename)
 {
@@ -245,30 +261,35 @@ void loadContactsFromCSV(const char *filename)
       continue;
     // Add first name to contact
     strncpy(newContact.firstName, token, sizeof(newContact.firstName));
+    trimTrailingWhitespace(newContact.firstName);
 
     // Parse last name (third field)
     token = strtok(NULL, ",");
     if (!token)
       continue;
     strncpy(newContact.lastName, token, sizeof(newContact.lastName));
+    trimTrailingWhitespace(newContact.lastName);
 
     // Parse email (fourth field)
     token = strtok(NULL, ",");
     if (!token)
       continue;
     strncpy(newContact.email, token, sizeof(newContact.email));
+    trimTrailingWhitespace(newContact.email);
 
     // Parse phone number (fifth field)
     token = strtok(NULL, ",");
     if (!token)
       continue;
     strncpy(newContact.phoneNumber, token, sizeof(newContact.phoneNumber));
+    trimTrailingWhitespace(newContact.phoneNumber);
 
     // Parse address (sixth field)
-    token = strtok(NULL, "\n");
+    token = strtok(NULL, ",\n");
     if (!token)
       continue;
     strncpy(newContact.postalAddress, token, sizeof(newContact.postalAddress));
+    trimTrailingWhitespace(newContact.postalAddress);
 
     // Add the parsed contact to the contacts array and increment the contactCount
     contacts[contactCount++] = newContact;
