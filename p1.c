@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 // Define a structure to hold address book contact information
 struct Contact
 {
+  int contactNumber;
   char firstName[50];      // First name of the contact
   char lastName[50];       // Last name of the contact
   char email[100];         // Email address (must contain '@')
@@ -22,8 +24,10 @@ void getValidatedPhone(char *phone, int size);
 void createNewEntry();
 void printContact(const struct Contact *contact);
 void printAllContacts();
+// void saveContactsToCSV(const char *filename);
+void loadContactsFromCSV(const char *filename);
 
-#define maxContacts 100
+#define maxContacts 1000
 struct Contact contacts[maxContacts];
 int contactCount = 0;
 
@@ -33,6 +37,7 @@ void printContact(const struct Contact *contact)
   printf("\n┌──────────────────────────────────┐");
   printf("\n│           CONTACT CARD          │");
   printf("\n├──────────────────────────────────┤");
+  printf("\n│ %-30d │", contact->contactNumber);
   printf("\n│ %-15s %-15s │", contact->firstName, contact->lastName);
   printf("\n│ %-30s │", contact->email);
   printf("\n│ %-30s │", contact->phoneNumber);
@@ -175,6 +180,7 @@ void createNewEntry()
   printf("\nCreating a new contact entry:\n");
 
   // This gets the user to input each attribute and validates them using the functions
+  newContact.contactNumber = contactCount + 1;
   getInputString("Enter first name: ", newContact.firstName, sizeof(newContact.firstName));
   getInputString("Enter last name: ", newContact.lastName, sizeof(newContact.lastName));
   getValidatedEmail(newContact.email, sizeof(newContact.email));
@@ -183,6 +189,7 @@ void createNewEntry()
 
   // Prints contact information
   printf("\nContact created successfully:\n");
+  printf("Contact Number: %d\n", newContact.contactNumber);
   printf("Name: %s %s\n", newContact.firstName, newContact.lastName);
   printf("Email: %s\n", newContact.email);
   printf("Phone: %s\n", newContact.phoneNumber);
@@ -195,10 +202,125 @@ void createNewEntry()
   // TODO: Save to file or database
 }
 
+// Function to load contacts from a CSV file into the contacts array
+void loadContactsFromCSV(const char *filename)
+{
+  // Opens the csv file in reading mode
+  FILE *file = fopen(filename, "r");
+  if (!file)
+  {
+    // If file can't be opened, show warning and return
+    printf("Warning: Could not open %s. Starting with empty contact list.\n", filename);
+    return;
+  }
+
+  // Buffer to hold each line read from the file
+  char line[512];
+  // Track current line number (for skipping header)
+  int lineNumber = 0;
+
+  // Read file line by line until end of file or max contacts reached
+  while (fgets(line, sizeof(line), file) && contactCount < maxContacts)
+  {
+    // Skip the first line (header row)
+    if (lineNumber++ == 0)
+      continue; // Skip header with column names
+
+    // Temporary contact to hold parsed data
+    struct Contact newContact;
+    // Pointer for string tokens
+    char *token;
+
+    // Parse contact number (first field)
+    token = strtok(line, ",");
+    // Skip line if missing data
+    if (!token)
+      continue;
+    // Convert string to integer and add to contact
+    newContact.contactNumber = atoi(token);
+
+    // Parse first name (second field)
+    token = strtok(NULL, ",");
+    if (!token)
+      continue;
+    // Add first name to contact
+    strncpy(newContact.firstName, token, sizeof(newContact.firstName));
+
+    // Parse last name (third field)
+    token = strtok(NULL, ",");
+    if (!token)
+      continue;
+    strncpy(newContact.lastName, token, sizeof(newContact.lastName));
+
+    // Parse email (fourth field)
+    token = strtok(NULL, ",");
+    if (!token)
+      continue;
+    strncpy(newContact.email, token, sizeof(newContact.email));
+
+    // Parse phone number (fifth field)
+    token = strtok(NULL, ",");
+    if (!token)
+      continue;
+    strncpy(newContact.phoneNumber, token, sizeof(newContact.phoneNumber));
+
+    // Parse address (sixth field)
+    token = strtok(NULL, "\n");
+    if (!token)
+      continue;
+    strncpy(newContact.postalAddress, token, sizeof(newContact.postalAddress));
+
+    // Add the parsed contact to the contacts array and increment the contactCount
+    contacts[contactCount++] = newContact;
+  }
+
+  // Closes the file once all the data has been read and saved to the array of strucutres
+  fclose(file);
+
+  // Informs the user that the contacts have been loaded into the program safely
+  printf("\nLoaded %d contacts from %s\n", contactCount, filename);
+}
+
+// Not done yet
+
+// Save contacts to a CSV file
+
+/*
+void saveContactsToCSV(const char *filename)
+{
+  FILE *file = fopen(filename, "w");
+  if (!file)
+  {
+    printf("Error: Could not open file %s for writing.\n", filename);
+    return;
+  }
+
+  fprintf(file, "Contact Number,First Name,Last Name,Email,Phone Number,Postal Address\n");
+
+  for (int i = 0; i < contactCount; i++)
+  {
+    fprintf(file, "%d,%s,%s,%s,%s,%s\n",
+            contacts[i].contactNumber,
+            contacts[i].firstName,
+            contacts[i].lastName,
+            contacts[i].email,
+            contacts[i].phoneNumber,
+            contacts[i].postalAddress);
+  }
+
+  fclose(file);
+  printf("\nContacts saved successfully to %s\n", filename);
+}
+*/
+
 int main()
 {
+  const char *filename = "practice.csv";
+  loadContactsFromCSV(filename);
+
   int mainInput;
   int entryInput;
+
   while (1)
   {
     displayMenu();
