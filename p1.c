@@ -19,6 +19,7 @@ void displayMenu();
 void cleanBuffer();
 void removeNewLine(char *str);
 void displayEntryCreation();
+void displayReadingMenu();
 void getInputString(const char *prompt, char *output, int size);
 int getIntInput(const char *prompt);
 bool isValidName(const char *name);
@@ -30,6 +31,7 @@ void getValidatedPhone(char *phone, int size);
 void createNewEntry();
 void printContact(const struct Contact *contact);
 void printAllContacts();
+void searchContacts();
 void trimTrailingWhitespace(char *str);
 void saveContactsToCSV(const char *filename);
 void loadContactsFromCSV(const char *filename);
@@ -45,15 +47,14 @@ int unsavedChanges = 0;
 // Temporary function so that we can see it works. Only used for the printAllContacts
 void printContact(const struct Contact *contact)
 {
-  printf("\n┌──────────────────────────────────┐");
-  printf("\n│           CONTACT CARD          │");
-  printf("\n├──────────────────────────────────┤");
-  printf("\n│ %-30d │", contact->contactNumber);
-  printf("\n│ %-15s %-15s │", contact->firstName, contact->lastName);
-  printf("\n│ %-30s │", contact->email);
-  printf("\n│ %-30s │", contact->phoneNumber);
-  printf("\n│ %-30s │", contact->postalAddress);
-  printf("\n└──────────────────────────────────┘\n");
+  printf("\n--------------------------------");
+  printf("\nContact Number: %d", contact->contactNumber);
+  printf("\nContact First Name: %s", contact->firstName);
+  printf("\nContact Last Name: %s", contact->lastName);
+  printf("\nContact Email: %s", contact->email);
+  printf("\nContact Phone Number: %s", contact->phoneNumber);
+  printf("\nContact Postal Address: %s", contact->postalAddress);
+  printf("\n--------------------------------\n");
 }
 
 // Temporary function to print all contacts saved so far
@@ -71,7 +72,6 @@ void printAllContacts()
     printf("\nContact #%d:", i + 1);
     printContact(&contacts[i]);
   }
-  printf("=======================\n");
 }
 
 // Function to display main menu
@@ -91,6 +91,14 @@ void displayEntryCreation()
   printf("0 - Return to main menu\n");
   printf("1 - Create a new entry\n");
   printf("2 - Edit an existing entry\n");
+}
+
+void displayReadingMenu()
+{
+  printf("\nWelcome to the reading menu\n");
+  printf("0 - Return to main menu\n");
+  printf("1 - Print out all contacts\n");
+  printf("2 - Search for contacts by field and additional criteria\n");
 }
 
 // Function to safely get an integer input from the user
@@ -432,6 +440,134 @@ void loadContactsFromCSV(const char *filename)
   printf("\nLoaded %d contacts from %s\n", contactCount, filename);
 }
 
+// Function to search for contacts
+// Still needs to add way to view partial details instead of all details
+// Search by phone number too
+void searchContacts()
+{
+  while (1)
+  {
+    printf("\nWhich field do you want to search by\n");
+    printf("0 - Return to reading menu\n");
+    printf("1 - Contact Number\n");
+    printf("2 - First Name\n");
+    printf("3 - Last Name\n");
+    printf("4 - Email\n");
+    printf("5 - Phone Number\n");
+    printf("6 - Postal Address\n");
+
+    int choice = getIntInput("Please enter your choice: ");
+
+    char searchTerm[100];
+    // Flag to track if any contacts were found
+    int found = 0;
+
+    if (choice == 0)
+    {
+      break;
+    }
+
+    // Search by contact number
+    else if (choice == 1)
+    {
+      int contactNumber = getIntInput("\nEnter the Contact Number to search for: ");
+      for (int i = 0; i < contactCount; i++)
+      {
+        if (contacts[i].contactNumber == contactNumber)
+        {
+          printContact(&contacts[i]);
+          found = 1;
+        }
+      }
+      break;
+    }
+
+    // Search by first name
+    else if (choice == 2)
+    {
+      getInputString("\nEnter the First Name (or starting characters): ", searchTerm, sizeof(searchTerm));
+      for (int i = 0; i < contactCount; i++)
+      {
+        if (strncasecmp(contacts[i].firstName, searchTerm, strlen(searchTerm)) == 0)
+        {
+          printContact(&contacts[i]);
+          found = 1;
+        }
+      }
+      break;
+    }
+    // Search by last name
+    else if (choice == 3)
+    {
+      getInputString("\nEnter the Last Name (or starting characters): ", searchTerm, sizeof(searchTerm));
+      for (int i = 0; i < contactCount; i++)
+      {
+        if (strncasecmp(contacts[i].lastName, searchTerm, strlen(searchTerm)) == 0)
+        {
+          printContact(&contacts[i]);
+          found = 1;
+        }
+      }
+      break;
+    }
+
+    else if (choice == 4) // Search by email
+    {
+      getInputString("\nEnter the Email (or starting characters): ", searchTerm, sizeof(searchTerm));
+      for (int i = 0; i < contactCount; i++)
+      {
+        if (strncasecmp(contacts[i].email, searchTerm, strlen(searchTerm)) == 0)
+        {
+          printContact(&contacts[i]);
+          found = 1;
+        }
+      }
+      break;
+    }
+
+    // Search by phone number
+    else if (choice == 5)
+    {
+      getInputString("\nEnter the Phone Number (or starting characters): ", searchTerm, sizeof(searchTerm));
+      for (int i = 0; i < contactCount; i++)
+      {
+        if (strncasecmp(contacts[i].phoneNumber, searchTerm, strlen(searchTerm)) == 0)
+        {
+          printContact(&contacts[i]);
+          found = 1;
+        }
+      }
+      break;
+    }
+    // Search by postal address
+    else if (choice == 6)
+    {
+      getInputString("\nEnter the Postal Address (or starting characters): ", searchTerm, sizeof(searchTerm));
+      for (int i = 0; i < contactCount; i++)
+      {
+        if (strncasecmp(contacts[i].postalAddress, searchTerm, strlen(searchTerm)) == 0)
+        {
+          printContact(&contacts[i]);
+          found = 1;
+        }
+      }
+      break;
+    }
+
+    else
+    {
+      printf("\nInvalid choice.\n");
+      continue;
+    }
+
+    // Inform the user if there are no entries found
+    if (!found)
+    {
+      printf("\nNo matching contacts found.\n\n");
+    }
+  }
+}
+
 // Function to rewrite the csv file with current data in contacts array (save contacts to csv)
 void saveContactsToCSV(const char *filename)
 {
@@ -533,8 +669,9 @@ int main()
       {
         displayEntryCreation();
         // Get validated main menu input
-        entryInput = getIntInput("\nPlease input a number according to the menu: ");
+        entryInput = getIntInput("Please input a number according to the menu: ");
 
+        // Return to main menu
         if (entryInput == 0)
         {
           break;
@@ -560,8 +697,29 @@ int main()
 
     else if (mainInput == 2)
     {
-      // Temporary have this here for verification
-      printAllContacts();
+      int readInput;
+      while (1)
+      {
+        displayReadingMenu();
+        readInput = getIntInput("Please input a number according to the menu: ");
+
+        if (readInput == 0)
+        {
+          break;
+        }
+        else if (readInput == 1)
+        {
+          printAllContacts();
+        }
+        else if (readInput == 2)
+        {
+          searchContacts();
+        }
+        else
+        {
+          printf("\nThis is not a valid input.\n");
+        }
+      }
     }
 
     // Allows the user to save all current contacts/changes in the array to the csv file
