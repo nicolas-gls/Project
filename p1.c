@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
+#include <stdbool.h>
 
 // Define a structure to hold address book contact information
 struct Contact
@@ -19,6 +21,10 @@ void removeNewLine(char *str);
 void displayEntryCreation();
 void getInputString(const char *prompt, char *output, int size);
 int getIntInput(const char *prompt);
+bool isValidName(const char *name);
+bool isValidAddress(const char *address);
+void getValidName(const char *prompt, char *output, int size);
+void getValidAddress(const char *prompt, char *output, int size);
 void getValidatedEmail(char *email, int size);
 void getValidatedPhone(char *phone, int size);
 void createNewEntry();
@@ -141,6 +147,97 @@ void getInputString(const char *prompt, char *output, int size)
   removeNewLine(output);
 }
 
+// Boolean value to check for valid name (at least 2 non space characters)
+bool isValidName(const char *name)
+{
+  // Tracks number of non-space characters
+  int nonSpaceCount = 0;
+
+  // Rejects NULL pointers or empty strings
+  if (name == NULL || name[0] == '\0')
+  {
+    return false;
+  }
+
+  // Iterate through each character in the string
+  for (int i = 0; name[i] != '\0'; i++)
+  {
+    // Count only non-space characters
+    if (!isspace(name[i]))
+    {
+      nonSpaceCount++;
+    }
+  }
+
+  // Final check if it returns true then valid
+  return (nonSpaceCount >= 2);
+}
+
+// Boolean value to check for valid postal address (at least 2 non space characters)
+bool isValidAddress(const char *address)
+{
+  // Tracks number of non-space characters
+  int nonSpaceCount = 0;
+
+  // Rejects NULL pointers or empty strings
+  if (address == NULL || address[0] == '\0')
+  {
+    return false;
+  }
+
+  // Iterate through each character in the string
+  for (int i = 0; address[i] != '\0'; i++)
+  {
+    // Count only non-space characters
+    if (!isspace(address[i]))
+    {
+      nonSpaceCount++;
+    }
+  }
+
+  // Final check if it returns true then valid
+  return (nonSpaceCount >= 2);
+}
+
+// Function to check if the name the user is inputing is valid
+void getValidName(const char *prompt, char *output, int size)
+{
+
+  while (1)
+  {
+    // Get input from user
+    getInputString(prompt, output, size);
+
+    // Validate the input
+    if (isValidName(output))
+    {
+      break; // Exit loop if valid
+    }
+
+    // Show error message for invalid input
+    printf("\nInvalid input! Must contain at least 2 non-space characters.\n\n");
+  }
+}
+
+// Function to check if the postal address the user is inputing is valid
+void getValidAddress(const char *prompt, char *output, int size)
+{
+  while (1)
+  {
+    // Get input from user
+    getInputString(prompt, output, size);
+
+    // Validate the input
+    if (isValidAddress(output))
+    {
+      break; // Exit loop if valid
+    }
+
+    // Show error message for invalid input
+    printf("\nInvalid address! Must contain at least 2 non-space characters.\n\n");
+  }
+}
+
 // Function to get the user to input a valid email
 void getValidatedEmail(char *email, int size)
 {
@@ -162,13 +259,13 @@ void getValidatedPhone(char *phone, int size)
 
   while (1)
   {
-    phoneNum = getIntInput("Enter SPANISH phone number (9 digits only): ");
+    phoneNum = getIntInput("Enter SPANISH phone number (9 positive digits only): ");
 
     // Convert integer to string and store it
     snprintf(phone, size, "%d", phoneNum);
 
-    // Check number length to make sure its a valid phone number
-    if (strlen(phone) != 9)
+    // Check number length and that the number isn't negative to make sure its a valid phone number
+    if (strlen(phone) != 9 || phoneNum < 0)
     {
       printf("\nInvalid phone number length. Try again.\n\n");
     }
@@ -191,11 +288,11 @@ void createNewEntry()
 
   // This gets the user to input each attribute and validates them using the functions
   newContact.contactNumber = contactCount + 1;
-  getInputString("Enter first name: ", newContact.firstName, sizeof(newContact.firstName));
-  getInputString("Enter last name: ", newContact.lastName, sizeof(newContact.lastName));
+  getValidName("Enter first name: ", newContact.firstName, sizeof(newContact.firstName));
+  getValidName("Enter last name: ", newContact.lastName, sizeof(newContact.lastName));
   getValidatedEmail(newContact.email, sizeof(newContact.email));
   getValidatedPhone(newContact.phoneNumber, sizeof(newContact.phoneNumber));
-  getInputString("Enter postal address: ", newContact.postalAddress, sizeof(newContact.postalAddress));
+  getValidAddress("Enter postal address: ", newContact.postalAddress, sizeof(newContact.postalAddress));
 
   // Prints contact information
   printf("\nContact created successfully:\n");
@@ -219,7 +316,7 @@ void createNewEntry()
     if (choice == 'y' || choice == 'Y')
     {
       saveContactsToCSV("practice.csv");
-      printf("\nContact saved successfully");
+      printf("\nContact saved successfully\n");
       unsavedChanges = 0;
       break;
     }
@@ -402,6 +499,7 @@ int main()
           else if (choice == 1)
           {
             saveContactsToCSV("practice.csv");
+            unsavedChanges = 0;
             printf("\nContacts saved successfully\n");
             printf("Thanks for using our service\n");
             return 0;
