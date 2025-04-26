@@ -696,6 +696,199 @@ void saveContactsToCSV(const char *filename)
   fclose(file);
 }
 
+// Function to find a contact by number
+int findContactByNumber(int number)
+{
+  for (int i = 0; i < contactCount; i++)
+  {
+    if (contacts[i].contactNumber == number)
+    {
+      // Return index if found
+      return i;
+    }
+  }
+  // Return -1 if not found
+  return -1;
+}
+
+// Function to delete a contact
+void deleteContact(int index)
+{
+  if (index < 0 || index >= contactCount)
+  {
+    printf("Invalid contact index!\n");
+    return;
+  }
+
+  // Shift all contacts after this one down by one
+  for (int i = index; i < contactCount - 1; i++)
+  {
+    contacts[i] = contacts[i + 1];
+    // Decrement contact numbers
+    contacts[i].contactNumber--;
+  }
+
+  contactCount--;
+  unsavedChanges = 1;
+  printf("\nContact deleted successfully.\n");
+  printf("Remember to save your changes before exiting the program\n");
+}
+
+void getValidNameWithEquals(const char *prompt, char *output, int size)
+{
+  char temp[150];
+  while (1)
+  {
+    getInputString(prompt, temp, sizeof(temp));
+
+    if (strcmp(temp, "=") == 0)
+    {
+      return; // Keep current value
+    }
+    else if (strcmp(temp, "-") == 0)
+    {
+      strncpy(output, "N/A", size);
+      return;
+    }
+    else if (isValidName(temp))
+    {
+      strncpy(output, temp, size);
+      return;
+    }
+    printf("Invalid name! Must contain at least 2 non-space characters.\n");
+  }
+}
+
+void getValidAddressWithEquals(const char *prompt, char *output, int size)
+{
+  char temp[150];
+  while (1)
+  {
+    getInputString(prompt, temp, sizeof(temp));
+
+    if (strcmp(temp, "=") == 0)
+    {
+      return;
+    }
+    else if (strcmp(temp, "-") == 0)
+    {
+      strncpy(output, "N/A", size);
+      return;
+    }
+    else if (isValidAddress(temp))
+    {
+      strncpy(output, temp, size);
+      return;
+    }
+    printf("Invalid address! Must contain at least 2 non-space characters.\n");
+  }
+}
+
+void getValidEmailWithEquals(const char *prompt, char *output, int size)
+{
+  char temp[150];
+  while (1)
+  {
+    getInputString(prompt, temp, sizeof(temp));
+
+    if (strcmp(temp, "=") == 0)
+    {
+      return;
+    }
+    else if (strcmp(temp, "-") == 0)
+    {
+      strncpy(output, "N/A", size);
+      return;
+    }
+    else if (strchr(temp, '@') != NULL)
+    {
+      strncpy(output, temp, size);
+      return;
+    }
+    printf("Invalid email! Must contain '@'.\n");
+  }
+}
+
+void getValidPhoneWithEquals(const char *prompt, char *output, int size)
+{
+  char temp[20];
+  while (1)
+  {
+    printf("%s", prompt);
+    fgets(temp, sizeof(temp), stdin);
+    removeNewLine(temp);
+
+    if (strcmp(temp, "=") == 0)
+    {
+      return;
+    }
+    else if (strcmp(temp, "-") == 0)
+    {
+      strncpy(output, "N/A", size);
+      return;
+    }
+    else
+    {
+      int valid = 1;
+      if (strlen(temp) != 9)
+        valid = 0;
+      for (int i = 0; i < strlen(temp); i++)
+      {
+        if (!isdigit(temp[i]))
+          valid = 0;
+      }
+      if (temp[0] == '0')
+        valid = 0;
+
+      if (valid)
+      {
+        strncpy(output, temp, size);
+        return;
+      }
+      printf("Invalid phone! Must be 9 digits, no leading 0.\n");
+    }
+  }
+}
+
+void editContact(int index)
+{
+  if (index < 0 || index >= contactCount)
+  {
+    printf("Invalid contact index!\n");
+    return;
+  }
+
+  printf("\nEditing contact #%d\n", contacts[index].contactNumber);
+  printf("Enter '=' to keep current value or '-' to set as N/A\n");
+
+  // Create a modified version of getValidName that handles '='
+  char temp[150];
+
+  // Edit first name
+  printf("Current first name: %s\n", contacts[index].firstName);
+  getValidNameWithEquals("Enter new first name (= to keep, - for N/A): ", contacts[index].firstName, sizeof(contacts[index].firstName));
+
+  // Edit last name
+  printf("Current last name: %s\n", contacts[index].lastName);
+  getValidNameWithEquals("Enter new last name (= to keep, - for N/A): ", contacts[index].lastName, sizeof(contacts[index].lastName));
+
+  // Edit email
+  printf("Current email: %s\n", contacts[index].email);
+  getValidEmailWithEquals("Enter new email (= to keep, - for N/A): ", contacts[index].email, sizeof(contacts[index].email));
+
+  // Edit phone
+  printf("Current phone: %s\n", contacts[index].phoneNumber);
+  getValidPhoneWithEquals("Enter new phone (= to keep, - for N/A): ", contacts[index].phoneNumber, sizeof(contacts[index].phoneNumber));
+
+  // Edit address
+  printf("Current address: %s\n", contacts[index].postalAddress);
+  getValidAddressWithEquals("Enter new address (= to keep, - for N/A): ", contacts[index].postalAddress, sizeof(contacts[index].postalAddress));
+
+  unsavedChanges = 1;
+  printf("\nContact updated successfully.\n");
+  printf("Remember to save your changes before you close the program\n");
+}
+
 int main()
 {
   // Open and load csv file data into contacts array
@@ -784,8 +977,45 @@ int main()
 
         else if (entryInput == 2)
         {
-          // STILL NEED TO ADD THIS FEATURE
           printf("\nYou have selected to edit an existing entry\n");
+          int searchNumber = getIntInput("Enter contact number to edit: ");
+          int foundIndex = findContactByNumber(searchNumber);
+
+          if (foundIndex == -1)
+          {
+            printf("Contact not found!\n");
+            continue;
+          }
+
+          printf("\nContact found:\n");
+          printContact(&contacts[foundIndex]);
+
+          printf("\nOptions:\n");
+          printf("0 - Return\n");
+          printf("1 - Edit this contact\n");
+          printf("2 - Delete this contact\n");
+
+          int action = getIntInput("Choose action: ");
+
+          if (action == 1)
+          {
+            editContact(foundIndex);
+          }
+
+          else if (action == 2)
+          {
+            deleteContact(foundIndex);
+          }
+
+          else if (action == 0)
+          {
+            printf("Operation cancelled.\n");
+          }
+
+          else
+          {
+            printf("\nInvalid choice!\n");
+          }
         }
 
         else
