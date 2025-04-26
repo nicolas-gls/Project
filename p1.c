@@ -11,7 +11,7 @@ struct Contact
   char firstName[50];      // First name of the contact
   char lastName[50];       // Last name of the contact
   char email[100];         // Email address (must contain '@')
-  char phoneNumber[10];    // Phone number (digits only)
+  char phoneNumber[11];    // Phone number
   char postalAddress[150]; // Postal address
 };
 
@@ -216,6 +216,12 @@ void getValidName(const char *prompt, char *output, int size)
     // Get input from user
     getInputString(prompt, output, size);
 
+    if (strcmp(output, "-") == 0)
+    {
+      strncpy(output, "N/A", size);
+      break;
+    }
+
     // Validate the input
     if (isValidName(output))
     {
@@ -223,7 +229,7 @@ void getValidName(const char *prompt, char *output, int size)
     }
 
     // Show error message for invalid input
-    printf("\nInvalid input! Must contain at least 2 non-space characters.\n\n");
+    printf("\nInvalid name! Must contain at least 2 non-space characters.\n\n");
   }
 }
 
@@ -235,6 +241,12 @@ void getValidAddress(const char *prompt, char *output, int size)
     // Get input from user
     getInputString(prompt, output, size);
 
+    if (strcmp(output, "-") == 0)
+    {
+      strncpy(output, "N/A", size);
+      break;
+    }
+
     // Validate the input
     if (isValidAddress(output))
     {
@@ -242,7 +254,7 @@ void getValidAddress(const char *prompt, char *output, int size)
     }
 
     // Show error message for invalid input
-    printf("\nInvalid address! Must contain at least 2 non-space characters.\n\n");
+    printf("\nInvalid postal address! Must contain at least 2 non-space characters.\n\n");
   }
 }
 
@@ -251,7 +263,14 @@ void getValidatedEmail(char *email, int size)
 {
   while (1)
   {
-    getInputString("Enter email: ", email, size);
+    getInputString("Enter email or '-' for N/A: ", email, size);
+
+    if (strcmp(email, "-") == 0)
+    {
+      strncpy(email, "N/A", size);
+      break;
+    }
+
     // Validate if the @ is inside the string
     if (strchr(email, '@') != NULL)
       break;
@@ -260,26 +279,58 @@ void getValidatedEmail(char *email, int size)
   }
 }
 
-// Function to get the user to input a valid phone number
 void getValidatedPhone(char *phone, int size)
 {
-  int phoneNum;
+  // Temporary buffer for raw input
+  char input[20];
 
   while (1)
   {
-    phoneNum = getIntInput("Enter SPANISH phone number that doesn't start with 0 (9 positive digits only): ");
+    printf("Please enter a SPANISH phone number (9 digits, no leading 0) or '-' for N/A: ");
+    fgets(input, sizeof(input), stdin);
+    removeNewLine(input); // Use your existing function
 
-    // Convert integer to string and store it
-    snprintf(phone, size, "%d", phoneNum);
-
-    // Check number length and that the number isn't negative to make sure its a valid phone number. Also checks that it doesn't start with 0
-    if (strlen(phone) != 9 || phoneNum < 0 || phone[0] == '0')
+    // Handle N/A case
+    if (strcmp(input, "-") == 0)
     {
-      printf("\nInvalid phone number. Please check requirements and try again.\n\n");
+      strncpy(phone, "N/A", size);
+      break;
+    }
+
+    // Validate it's a valid number
+    int valid = 1;
+    int length = strlen(input);
+
+    // Check length
+    if (length != 9)
+    {
+      valid = 0;
+    }
+
+    // Check all characters are digits
+    for (int i = 0; i < length; i++)
+    {
+      if (!isdigit(input[i]))
+      {
+        valid = 0;
+        break;
+      }
+    }
+
+    // Check doesn't start with 0
+    if (input[0] == '0')
+    {
+      valid = 0;
+    }
+
+    if (valid)
+    {
+      strncpy(phone, input, size);
+      break;
     }
     else
     {
-      break;
+      printf("Invalid phone number. Must be exactly 9 digits, no leading 0, and only numbers.\n");
     }
   }
 }
@@ -296,11 +347,11 @@ void createNewEntry()
 
   // This gets the user to input each attribute and validates them using the functions
   newContact.contactNumber = contactCount + 1;
-  getValidName("Enter first name: ", newContact.firstName, sizeof(newContact.firstName));
-  getValidName("Enter last name: ", newContact.lastName, sizeof(newContact.lastName));
+  getValidName("Enter first name or '-' for N/A: ", newContact.firstName, sizeof(newContact.firstName));
+  getValidName("Enter last name or '-' for N/A: ", newContact.lastName, sizeof(newContact.lastName));
   getValidatedEmail(newContact.email, sizeof(newContact.email));
   getValidatedPhone(newContact.phoneNumber, sizeof(newContact.phoneNumber));
-  getValidAddress("Enter postal address: ", newContact.postalAddress, sizeof(newContact.postalAddress));
+  getValidAddress("Enter postal address or '-' for N/A: ", newContact.postalAddress, sizeof(newContact.postalAddress));
 
   // Prints contact information
   printf("\nContact created successfully:\n");
@@ -441,7 +492,6 @@ void loadContactsFromCSV(const char *filename)
 }
 
 // Function to search for contacts
-// Still needs further editing
 void searchContacts()
 {
   while (1)
@@ -461,8 +511,9 @@ void searchContacts()
     // Flag to track if any contacts were found
     int foundCount = 0;
     // Array to store contacts from search
-    int foundIndexes[100];
+    int foundIndexes[1000];
 
+    // Return to reading menu
     if (choice == 0)
     {
       break;
@@ -558,7 +609,7 @@ void searchContacts()
     // Inform the user if there are no entries found
     if (foundCount == 0)
     {
-      printf("\nNo matching contacts found.\n\n");
+      printf("\nNo matching contacts found.\n");
       continue;
     }
 
@@ -610,7 +661,7 @@ void searchContacts()
       }
       else
       {
-        printf("Invalid selection. Try again.\n");
+        printf("\nInvalid selection. Try again.\n");
       }
     }
   }
