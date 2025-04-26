@@ -15,6 +15,7 @@ struct Contact
   char postalAddress[150]; // Postal address
 };
 
+// Declare functions
 void displayMenu();
 void cleanBuffer();
 void removeNewLine(char *str);
@@ -35,6 +36,13 @@ void searchContacts();
 void trimTrailingWhitespace(char *str);
 void saveContactsToCSV(const char *filename);
 void loadContactsFromCSV(const char *filename);
+int findContactByNumber(int number);
+void deleteContact(int index);
+void getValidNameWithEquals(const char *prompt, char *output, int size);
+void getValidAddressWithEquals(const char *prompt, char *output, int size);
+void getValidEmailWithEquals(const char *prompt, char *output, int size);
+void getValidPhoneWithEquals(const char *prompt, char *output, int size);
+void editContact(int index);
 
 #define maxContacts 1000
 // Array for contacts
@@ -93,6 +101,7 @@ void displayEntryCreation()
   printf("2 - Edit an existing entry\n");
 }
 
+// Function to display the menu during reading mode
 void displayReadingMenu()
 {
   printf("\nWelcome to the reading menu\n");
@@ -104,14 +113,17 @@ void displayReadingMenu()
 // Function to safely get an integer input from the user
 int getIntInput(const char *prompt)
 {
-  int input;  // Variable to store the user's input
-  int result; // Variable to store the result of scanf (number of successfully matched inputs)
+  // Variable to store the user's input
+  int input;
+  // Variable to store the result of scanf
+  int result;
 
   while (1)
   {
     printf("%s", prompt);
     // Attempt to read an integer from the user
-    result = scanf("%d", &input); // scanf returns 1 if it successfully reads an integer
+    // scanf returns 1 if it successfully reads an integer
+    result = scanf("%d", &input);
     cleanBuffer();
 
     if (result == 1)
@@ -147,7 +159,7 @@ void removeNewLine(char *str)
   }
 }
 
-// Helper for string input
+// Function for string input
 void getInputString(const char *prompt, char *output, int size)
 {
   printf("%s", prompt);
@@ -225,7 +237,8 @@ void getValidName(const char *prompt, char *output, int size)
     // Validate the input
     if (isValidName(output))
     {
-      break; // Exit loop if valid
+      // Exit loop if valid
+      break;
     }
 
     // Show error message for invalid input
@@ -250,7 +263,8 @@ void getValidAddress(const char *prompt, char *output, int size)
     // Validate the input
     if (isValidAddress(output))
     {
-      break; // Exit loop if valid
+      // Exit loop if valid
+      break;
     }
 
     // Show error message for invalid input
@@ -279,6 +293,7 @@ void getValidatedEmail(char *email, int size)
   }
 }
 
+// Function to validate the phone input
 void getValidatedPhone(char *phone, int size)
 {
   // Temporary buffer for raw input
@@ -288,7 +303,7 @@ void getValidatedPhone(char *phone, int size)
   {
     printf("Please enter a SPANISH phone number (9 digits, no leading 0) or '-' for N/A: ");
     fgets(input, sizeof(input), stdin);
-    removeNewLine(input); // Use your existing function
+    removeNewLine(input);
 
     // Handle N/A case
     if (strcmp(input, "-") == 0)
@@ -317,7 +332,7 @@ void getValidatedPhone(char *phone, int size)
       }
     }
 
-    // Check doesn't start with 0
+    // Check it doesn't start with 0
     if (input[0] == '0')
     {
       valid = 0;
@@ -345,7 +360,7 @@ void createNewEntry()
   // Sets up the unsaved changes flag
   unsavedChanges = 1;
 
-  // This gets the user to input each attribute and validates them using the functions
+  // This gets the user to input each attribute and validates them using the functions previously created
   newContact.contactNumber = contactCount + 1;
   getValidName("Enter first name or '-' for N/A: ", newContact.firstName, sizeof(newContact.firstName));
   getValidName("Enter last name or '-' for N/A: ", newContact.lastName, sizeof(newContact.lastName));
@@ -374,7 +389,7 @@ void createNewEntry()
 
     if (choice == 'y' || choice == 'Y')
     {
-      saveContactsToCSV("practice.csv");
+      saveContactsToCSV("contacts.csv");
       printf("\nContact saved successfully\n");
       unsavedChanges = 0;
       break;
@@ -406,6 +421,20 @@ void trimTrailingWhitespace(char *str)
 
 // DISCLAIMER for some reason it works even if we use "," inside the input
 // REMMEBER TO DELETE THESE TWO COMMENTS BEFORE HANDING IN
+//////
+//////
+//////
+//////
+//////
+//////
+//////
+//////
+//////
+//////
+//////
+//////
+//////
+//////
 
 // Function to load contacts from a CSV file into the contacts array
 void loadContactsFromCSV(const char *filename)
@@ -563,7 +592,8 @@ void searchContacts()
       }
     }
 
-    else if (choice == 4) // Search by email
+    // Search by email
+    else if (choice == 4)
     {
       getInputString("\nEnter the Email (or starting characters): ", searchTerm, sizeof(searchTerm));
       for (int i = 0; i < contactCount; i++)
@@ -587,6 +617,7 @@ void searchContacts()
         }
       }
     }
+
     // Search by postal address
     else if (choice == 6)
     {
@@ -613,6 +644,7 @@ void searchContacts()
       continue;
     }
 
+    // Prints out partial information about contacts found
     while (1)
     {
       printf("\nFound %d matching contacts:\n", foundCount);
@@ -648,6 +680,7 @@ void searchContacts()
       }
       printf("0 - Return to search menu\n");
 
+      // Offers the option to display more information
       int selection = getIntInput("Enter number to view full contact details (or 0 to go back): ");
 
       if (selection == 0)
@@ -720,7 +753,7 @@ void deleteContact(int index)
     return;
   }
 
-  // Shift all contacts after this one down by one
+  // Shift all contact numbers after this one down by one
   for (int i = index; i < contactCount - 1; i++)
   {
     contacts[i] = contacts[i + 1];
@@ -734,6 +767,7 @@ void deleteContact(int index)
   printf("Remember to save your changes before exiting the program\n");
 }
 
+// Similar to validname function but includes the option to maintain previous data with '='
 void getValidNameWithEquals(const char *prompt, char *output, int size)
 {
   char temp[150];
@@ -741,9 +775,10 @@ void getValidNameWithEquals(const char *prompt, char *output, int size)
   {
     getInputString(prompt, temp, sizeof(temp));
 
+    // Keep current value
     if (strcmp(temp, "=") == 0)
     {
-      return; // Keep current value
+      return;
     }
     else if (strcmp(temp, "-") == 0)
     {
@@ -758,7 +793,7 @@ void getValidNameWithEquals(const char *prompt, char *output, int size)
     printf("Invalid name! Must contain at least 2 non-space characters.\n");
   }
 }
-
+// Similar to validaddress function but includes the option to maintain previous data with '='
 void getValidAddressWithEquals(const char *prompt, char *output, int size)
 {
   char temp[150];
@@ -783,7 +818,7 @@ void getValidAddressWithEquals(const char *prompt, char *output, int size)
     printf("Invalid address! Must contain at least 2 non-space characters.\n");
   }
 }
-
+// Similar to previous functions
 void getValidEmailWithEquals(const char *prompt, char *output, int size)
 {
   char temp[150];
@@ -809,25 +844,30 @@ void getValidEmailWithEquals(const char *prompt, char *output, int size)
   }
 }
 
+// Similar to previous functions
 void getValidPhoneWithEquals(const char *prompt, char *output, int size)
 {
   char temp[20];
+
   while (1)
   {
     printf("%s", prompt);
     fgets(temp, sizeof(temp), stdin);
     removeNewLine(temp);
 
+    // Maintain current value
     if (strcmp(temp, "=") == 0)
     {
       return;
     }
+    // Set N/A value
     else if (strcmp(temp, "-") == 0)
     {
       strncpy(output, "N/A", size);
       return;
     }
     else
+    // Checks to see if number entered by the user is valid
     {
       int valid = 1;
       if (strlen(temp) != 9)
@@ -850,8 +890,10 @@ void getValidPhoneWithEquals(const char *prompt, char *output, int size)
   }
 }
 
+// Function to edit contacts
 void editContact(int index)
 {
+  // Checks if the contact exists
   if (index < 0 || index >= contactCount)
   {
     printf("Invalid contact index!\n");
@@ -861,7 +903,6 @@ void editContact(int index)
   printf("\nEditing contact #%d\n", contacts[index].contactNumber);
   printf("Enter '=' to keep current value or '-' to set as N/A\n");
 
-  // Create a modified version of getValidName that handles '='
   char temp[150];
 
   // Edit first name
@@ -892,7 +933,7 @@ void editContact(int index)
 int main()
 {
   // Open and load csv file data into contacts array
-  const char *filename = "practice.csv";
+  const char *filename = "contacts.csv";
   loadContactsFromCSV(filename);
 
   int mainInput;
@@ -926,7 +967,7 @@ int main()
 
           else if (choice == 1)
           {
-            saveContactsToCSV("practice.csv");
+            saveContactsToCSV("contacts.csv");
             unsavedChanges = 0;
             printf("\nContacts saved successfully\n");
             printf("Thanks for using our service\n");
@@ -981,6 +1022,7 @@ int main()
           int searchNumber = getIntInput("Enter contact number to edit: ");
           int foundIndex = findContactByNumber(searchNumber);
 
+          // If contact isn't found returns
           if (foundIndex == -1)
           {
             printf("Contact not found!\n");
@@ -990,6 +1032,7 @@ int main()
           printf("\nContact found:\n");
           printContact(&contacts[foundIndex]);
 
+          // Allows the user to edit or delete the contact
           printf("\nOptions:\n");
           printf("0 - Return\n");
           printf("1 - Edit this contact\n");
@@ -1007,6 +1050,7 @@ int main()
             deleteContact(foundIndex);
           }
 
+          // Allows user to return to menu
           else if (action == 0)
           {
             printf("Operation cancelled.\n");
@@ -1055,7 +1099,7 @@ int main()
     // Allows the user to save all current contacts/changes in the array to the csv file
     else if (mainInput == 3)
     {
-      saveContactsToCSV("practice.csv");
+      saveContactsToCSV("contacts.csv");
       unsavedChanges = 0;
       printf("\nContacts saved!\n\n");
     }
