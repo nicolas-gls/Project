@@ -11,7 +11,7 @@ struct Contact
   char firstName[50];      // First name of the contact
   char lastName[50];       // Last name of the contact
   char email[100];         // Email address (must contain '@')
-  char phoneNumber[20];    // Phone number (digits only)
+  char phoneNumber[10];    // Phone number (digits only)
   char postalAddress[150]; // Postal address
 };
 
@@ -259,15 +259,15 @@ void getValidatedPhone(char *phone, int size)
 
   while (1)
   {
-    phoneNum = getIntInput("Enter SPANISH phone number (9 positive digits only): ");
+    phoneNum = getIntInput("Enter SPANISH phone number that doesn't start with 0 (9 positive digits only): ");
 
     // Convert integer to string and store it
     snprintf(phone, size, "%d", phoneNum);
 
-    // Check number length and that the number isn't negative to make sure its a valid phone number
-    if (strlen(phone) != 9 || phoneNum < 0)
+    // Check number length and that the number isn't negative to make sure its a valid phone number. Also checks that it doesn't start with 0
+    if (strlen(phone) != 9 || phoneNum < 0 || phone[0] == '0')
     {
-      printf("\nInvalid phone number length. Try again.\n\n");
+      printf("\nInvalid phone number. Please check requirements and try again.\n\n");
     }
     else
     {
