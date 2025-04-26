@@ -441,8 +441,7 @@ void loadContactsFromCSV(const char *filename)
 }
 
 // Function to search for contacts
-// Still needs to add way to view partial details instead of all details
-// Search by phone number too
+// Still needs further editing
 void searchContacts()
 {
   while (1)
@@ -460,7 +459,9 @@ void searchContacts()
 
     char searchTerm[100];
     // Flag to track if any contacts were found
-    int found = 0;
+    int foundCount = 0;
+    // Array to store contacts from search
+    int foundIndexes[100];
 
     if (choice == 0)
     {
@@ -471,15 +472,19 @@ void searchContacts()
     else if (choice == 1)
     {
       int contactNumber = getIntInput("\nEnter the Contact Number to search for: ");
+      if (contactNumber <= 0)
+      {
+        printf("Invalid contact number. Must be positive.\n");
+        continue;
+      }
+
       for (int i = 0; i < contactCount; i++)
       {
         if (contacts[i].contactNumber == contactNumber)
         {
-          printContact(&contacts[i]);
-          found = 1;
+          foundIndexes[foundCount++] = i;
         }
       }
-      break;
     }
 
     // Search by first name
@@ -490,11 +495,9 @@ void searchContacts()
       {
         if (strncasecmp(contacts[i].firstName, searchTerm, strlen(searchTerm)) == 0)
         {
-          printContact(&contacts[i]);
-          found = 1;
+          foundIndexes[foundCount++] = i;
         }
       }
-      break;
     }
     // Search by last name
     else if (choice == 3)
@@ -504,11 +507,9 @@ void searchContacts()
       {
         if (strncasecmp(contacts[i].lastName, searchTerm, strlen(searchTerm)) == 0)
         {
-          printContact(&contacts[i]);
-          found = 1;
+          foundIndexes[foundCount++] = i;
         }
       }
-      break;
     }
 
     else if (choice == 4) // Search by email
@@ -518,26 +519,22 @@ void searchContacts()
       {
         if (strncasecmp(contacts[i].email, searchTerm, strlen(searchTerm)) == 0)
         {
-          printContact(&contacts[i]);
-          found = 1;
+          foundIndexes[foundCount++] = i;
         }
       }
-      break;
     }
 
     // Search by phone number
     else if (choice == 5)
     {
-      getInputString("\nEnter the Phone Number (or starting characters): ", searchTerm, sizeof(searchTerm));
+      getInputString("\nEnter the Phone Number (or starting digits): ", searchTerm, sizeof(searchTerm));
       for (int i = 0; i < contactCount; i++)
       {
         if (strncasecmp(contacts[i].phoneNumber, searchTerm, strlen(searchTerm)) == 0)
         {
-          printContact(&contacts[i]);
-          found = 1;
+          foundIndexes[foundCount++] = i;
         }
       }
-      break;
     }
     // Search by postal address
     else if (choice == 6)
@@ -547,11 +544,9 @@ void searchContacts()
       {
         if (strncasecmp(contacts[i].postalAddress, searchTerm, strlen(searchTerm)) == 0)
         {
-          printContact(&contacts[i]);
-          found = 1;
+          foundIndexes[foundCount++] = i;
         }
       }
-      break;
     }
 
     else
@@ -561,9 +556,62 @@ void searchContacts()
     }
 
     // Inform the user if there are no entries found
-    if (!found)
+    if (foundCount == 0)
     {
       printf("\nNo matching contacts found.\n\n");
+      continue;
+    }
+
+    while (1)
+    {
+      printf("\nFound %d matching contacts:\n", foundCount);
+      for (int i = 0; i < foundCount; i++)
+      {
+        int idx = foundIndexes[i];
+        printf("%d - Contact #%d: ", i + 1, contacts[idx].contactNumber);
+
+        if (choice == 1) // Contact Number
+        {
+          printf("%d\n", contacts[idx].contactNumber);
+        }
+        else if (choice == 2) // First Name
+        {
+          printf("%s\n", contacts[idx].firstName);
+        }
+        else if (choice == 3) // Last Name
+        {
+          printf("%s\n", contacts[idx].lastName);
+        }
+        else if (choice == 4) // Email
+        {
+          printf("%s\n", contacts[idx].email);
+        }
+        else if (choice == 5) // Phone Number
+        {
+          printf("%s\n", contacts[idx].phoneNumber);
+        }
+        else if (choice == 6) // Postal Address
+        {
+          printf("%s\n", contacts[idx].postalAddress);
+        }
+      }
+      printf("0 - Return to search menu\n");
+
+      int selection = getIntInput("Enter number to view full contact details (or 0 to go back): ");
+
+      if (selection == 0)
+      {
+        break;
+      }
+      else if (selection >= 1 && selection <= foundCount)
+      {
+        int selectedIndex = foundIndexes[selection - 1];
+        printContact(&contacts[selectedIndex]);
+      }
+      else
+      {
+        printf("Invalid selection. Try again.\n");
+      }
     }
   }
 }
@@ -685,6 +733,7 @@ int main()
 
         else if (entryInput == 2)
         {
+          // STILL NEED TO ADD THIS FEATURE
           printf("\nYou have selected to edit an existing entry\n");
         }
 
